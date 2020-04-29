@@ -2,14 +2,16 @@ require 'main/services/v1/user_services_pb'
 
 class UserService < Main::Services::V1::User::Service
   def get_user(request, call)
-    # TODO: implement
+    Main::Services::V1::GetUserResponse.new user: User.find(request.id).as_protocol_buffer
+
+    rescue ActiveRecord::RecordNotFound => e
+      raise GRPC::NotFound.new e.message
   end
 
   def list_users(request, call)
     page = request.page unless request.page.zero?
     per_page = request.per_page unless request.per_page.zero?
 
-    # TODO: Use index
     users = User.
       order(created_at: :desc).
       page(page).
@@ -20,7 +22,7 @@ class UserService < Main::Services::V1::User::Service
       count: User.count,
     )
   rescue ActiveRecord::RecordNotFound => e
-    raise GRPC::NotFoundss.new(e.message)
+    raise GRPC::NotFound.new(e.message)
   end
 
   def create_user(request, call)

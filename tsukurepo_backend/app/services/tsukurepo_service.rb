@@ -15,11 +15,7 @@ class TsukurepoService < TsukurepoBackend::Services::V1::Tsukurepo::Service
     page = request.page unless request.page.zero?
     per_page = request.per_page unless request.per_page.zero?
 
-    # TODO: Avoid to N+1 query, Use index
-    tsukurepos = Tsukurepo.
-      order(created_at: :desc).
-      page(page).
-      per(per_page)
+    tsukurepos = Tsukurepo.preload(:user).order(created_at: :desc).page(page).per(per_page)
 
       TsukurepoBackend::Services::V1::ListTsukureposResponse.new(
       tsukurepos: tsukurepos.map(&:as_protocol_buffer)

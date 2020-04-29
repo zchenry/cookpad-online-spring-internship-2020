@@ -15,11 +15,7 @@ class RecipeService < Main::Services::V1::Recipe::Service
     page = request.page unless request.page.zero?
     per_page = request.per_page unless request.per_page.zero?
 
-    # TODO: Avoid to N+1 query, Use index
-    recipes = Recipe.
-      order(created_at: :desc).
-      page(page).
-      per(per_page)
+    recipes = Recipe.preload(:user, :step, :ingredient).order(created_at: :desc).page(page).per(per_page)
 
     Main::Services::V1::ListRecipesResponse.new(
       recipes: recipes.map(&:as_protocol_buffer),
@@ -35,8 +31,9 @@ class RecipeService < Main::Services::V1::Recipe::Service
 
     user_id = request.user_id unless request.user_id.zero?
 
-    # TODO: Avoid to N+1 query, Use multi-column indexs
+    # TODO: Avoid to N+1 query
     recipes = Recipe.
+      preload(:user, :step, :ingredient).
       where(user_id: user_id).
       order(created_at: :desc).
       page(page).
